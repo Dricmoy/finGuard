@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -14,11 +12,12 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+    - "9092:9092"      # internal Docker
+    - "29092:29092"    # host access
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -39,7 +38,7 @@ services:
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
     
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: kafbat/kafka-ui:latest
     depends_on:
       - kafka
       - schema-registry
@@ -48,7 +47,8 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_SCHEMAREGISTRYURL: http://schema-registry:8081
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
 
   postgres:
     image: postgres:15
@@ -62,17 +62,18 @@ services:
       - pgdata:/var/lib/postgresql/data
   
   kafka-topic-unit:
-    image: edenhill/kafka-topics-ui:latest
+    image: confluentinc/cp-kafka:7.5.0
     depends_on:
       - kafka
     entrypoint: ["/bin/sh", "-c"]
     command: |
       "echo 'Creating topics...' &&
-       sleep 5 &&
-       kafka-topics --create --topic transactions --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 &&
-       kafka-topics --create --topic fraud_scores --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 &&
-       kafka-topics --create --topic alerts --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 &&
-       echo 'Topics created.'"
+      sleep 10 &&
+      kafka-topics --create --topic transactions --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 &&
+      kafka-topics --create --topic fraud_scores --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 &&
+      kafka-topics --create --topic alerts --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 &&
+      echo 'Topics created.'"
+
 
 volumes:
   pgdata:
