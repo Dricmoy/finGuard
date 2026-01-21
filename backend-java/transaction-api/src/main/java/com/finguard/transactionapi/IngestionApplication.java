@@ -1,4 +1,4 @@
-package com.finGuard.transactionapi;
+package com.finguard.transactionapi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootApplication;

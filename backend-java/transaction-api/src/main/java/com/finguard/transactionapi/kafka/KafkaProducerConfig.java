@@ -1,4 +1,4 @@
-package com.finGuard.transactionapi.kafka;
+package com.finguard.transactionapi.kafka;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
